@@ -1,0 +1,120 @@
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 15px;
+  color: #222;
+  background: #fff;
+}
+
+.page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 20px 16px 40px;
+}
+
+h1 {
+  font-size: 24px;
+  margin: 0 0 6px;
+}
+
+h2 {
+  font-size: 18px;
+  margin: 0 0 10px;
+}
+
+section {
+  border-top: 1px solid #ccc;
+  padding-top: 16px;
+  margin-top: 20px;
+}
+
+.muted {
+  color: #666;
+  margin-top: 0;
+}
+
+textarea, input[type=text] {
+  width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  padding: 6px;
+  border: 1px solid #aaa;
+}
+
+input[type=number] {
+  width: 60px;
+  font: inherit;
+}
+
+select {
+  font: inherit;
+  padding: 4px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin: 8px 0;
+}
+
+.row input[type=text] {
+  flex: 1;
+  min-width: 200px;
+}
+
+button {
+  font: inherit;
+  padding: 6px 14px;
+  border: 1px solid #2f7d32;
+  background: #388e3c;
+  color: #fff;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #2f7d32;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-top: 8px;
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 4px 8px;
+  text-align: left;
+}
+
+th {
+  background: #f2f2f2;
+}
+
+td.num {
+  text-align: right;
+  white-space: nowrap;
+}
+
+tr.yes td {
+  font-weight: bold;
+}
+
+.bar {
+  height: 10px;
+  background: #81c784;
+}
+
+.found {
+  margin: 4px 0;
+}
+
+.found a {
+  cursor: pointer;
+}
+
+.error {
+  color: #b00020;
+}

@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.pytest_cache/
+.ipynb_checkpoints/
+*.log
+
+# данные 2ГИС (большие файлы, в репозиторий не кладём)
+dataset/
+
+# создаются скриптами из backend/scripts
+backend/models/
+backend/data/
+backend/reports/*.npy
+
+# рабочие файлы
+Презентация_черновик2ГИС(1).pptx
+правки_по_презентации.pptx
+ДубльГИС_кейс2.docx
+~$*
+
+# IDE и система
+.idea/
+.vscode/
+Thumbs.db
+desktop.ini
+.DS_Store
