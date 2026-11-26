@@ -33,22 +33,12 @@ section {
   margin-top: 0;
 }
 
-textarea, input[type=text] {
+textarea {
   width: 100%;
   box-sizing: border-box;
   font: inherit;
   padding: 6px;
   border: 1px solid #aaa;
-}
-
-input[type=number] {
-  width: 60px;
-  font: inherit;
-}
-
-select {
-  font: inherit;
-  padding: 4px;
 }
 
 .row {
@@ -57,11 +47,6 @@ select {
   gap: 10px;
   align-items: center;
   margin: 8px 0;
-}
-
-.row input[type=text] {
-  flex: 1;
-  min-width: 200px;
 }
 
 button {
@@ -105,14 +90,6 @@ tr.yes td {
 .bar {
   height: 10px;
   background: #81c784;
-}
-
-.found {
-  margin: 4px 0;
-}
-
-.found a {
-  cursor: pointer;
 }
 
 .error {

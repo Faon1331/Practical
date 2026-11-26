@@ -2,38 +2,29 @@ import logging
 from contextlib import asynccontextmanager
 
 import numpy as np
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from app import config
-from app.models import load_classifier
-from app.schemas import (BatchIn, BatchOut, LabelInfo, Prediction, PredictionOut,
-                         ReviewIn, VenueOut, VenueShort)
-from app.venues import VenueStore
+from app.model import Classifier
+from app.schemas import BatchIn, BatchOut, LabelInfo, Prediction, ReviewIn
 
 log = logging.getLogger("uvicorn.error")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    app.state.classifier = load_classifier()
-    log.info("модель загружена: %s", app.state.classifier.name)
-
-    app.state.venues = None
-    if config.VENUES_PATH.exists():
-        app.state.venues = VenueStore(config.VENUES_PATH)
-        log.info("заведений загружено: %d", len(app.state.venues))
-    else:
-        log.warning("нет %s, запросы по заведениям будут недоступны", config.VENUES_PATH)
+    app.state.classifier = Classifier(config.MODEL_PATH)
+    log.info("модель загружена: %s", config.MODEL_PATH.name)
     yield
 
 
 app = FastAPI(
     title="Характеристики заведений по отзывам 2ГИС",
-    description="Многометочная классификация отзывов по 19 характеристикам "
-                "и профили заведений на её основе.",
-    version="1.0.0",
+    description="Многометочная классификация отзывов по 19 характеристикам: "
+                "TF-IDF (слова и биграммы) + логистическая регрессия с порогами по меткам.",
+    version="1.2.0",
     lifespan=lifespan,
 )
 
@@ -56,20 +47,9 @@ def to_predictions(classifier, proba: np.ndarray) -> list[Prediction]:
     return result
 
 
-def get_venues(request: Request) -> VenueStore:
-    venues = request.app.state.venues
-    if venues is None:
-        raise HTTPException(503, "Профили заведений не построены: запустите scripts/build_venues.py")
-    return venues
-
-
 @app.get("/api/health")
-def health(request: Request):
-    return {
-        "status": "ok",
-        "model": request.app.state.classifier.name,
-        "venues": len(request.app.state.venues) if request.app.state.venues else 0,
-    }
+def health():
+    return {"status": "ok"}
 
 
 @app.get("/api/labels", response_model=list[LabelInfo])
@@ -78,44 +58,16 @@ def labels():
             for c in config.LABEL_COLUMNS]
 
 
-@app.post("/api/predict", response_model=PredictionOut)
+@app.post("/api/predict", response_model=Prediction)
 def predict(review: ReviewIn, request: Request):
     clf = request.app.state.classifier
-    pred = to_predictions(clf, clf.predict_proba([review.text]))[0]
-    return PredictionOut(model=clf.name, **pred.model_dump())
+    return to_predictions(clf, clf.predict_proba([review.text]))[0]
 
 
 @app.post("/api/predict/batch", response_model=BatchOut)
 def predict_batch(batch: BatchIn, request: Request):
     clf = request.app.state.classifier
-    return BatchOut(model=clf.name, items=to_predictions(clf, clf.predict_proba(batch.texts)))
-
-
-@app.get("/api/venues", response_model=list[VenueShort])
-def top_venues(
-    request: Request,
-    label: str = Query(..., description="Характеристика, например Свидание"),
-    limit: int = Query(10, ge=1, le=100),
-    min_reviews: int = Query(10, ge=1, description="Не учитывать заведения с малым числом отзывов"),
-):
-    column = config.COLUMN_BY_NAME.get(label)
-    if column is None:
-        raise HTTPException(404, f"Нет такой характеристики: {label}")
-    return get_venues(request).top(column, limit=limit, min_reviews=min_reviews)
-
-
-@app.get("/api/venues/search", response_model=list[VenueShort])
-def search_venues(request: Request, q: str = Query(..., min_length=2),
-                  limit: int = Query(10, ge=1, le=50)):
-    return get_venues(request).search(q, limit=limit)
-
-
-@app.get("/api/venues/{branch_id}", response_model=VenueOut)
-def venue(branch_id: str, request: Request):
-    item = get_venues(request).get(branch_id)
-    if item is None:
-        raise HTTPException(404, "Заведение не найдено")
-    return item
+    return BatchOut(items=to_predictions(clf, clf.predict_proba(batch.texts)))
 
 
 app.mount("/static", StaticFiles(directory=config.STATIC_DIR), name="static")

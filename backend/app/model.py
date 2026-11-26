@@ -3,16 +3,15 @@ from pathlib import Path
 import joblib
 import numpy as np
 
-from app.preprocessing import preprocess_text
+from app.config import preprocess_text
 
 
-class TfidfClassifier:
-    """TF-IDF + логистическая регрессия (по модели на каждую метку).
+class Classifier:
+    """Итоговая модель: TF-IDF (слова и биграммы) + логистическая регрессия
+    с весами классов и своим порогом для каждой метки.
 
-    Файл модели создаёт scripts/train_tfidf.py.
+    Файл создаёт pipeline/12_thresholds.py.
     """
-
-    name = "tfidf"
 
     def __init__(self, path: Path):
         bundle = joblib.load(path)
@@ -23,5 +22,4 @@ class TfidfClassifier:
 
     def predict_proba(self, texts: list[str]) -> np.ndarray:
         clean = [preprocess_text(t) for t in texts]
-        features = self.vectorizer.transform(clean)
-        return self.model.predict_proba(features)
+        return self.model.predict_proba(self.vectorizer.transform(clean))

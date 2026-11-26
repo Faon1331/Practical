@@ -9,37 +9,17 @@
 <body>
 <div class="page">
   <h1>Характеристики заведений по отзывам 2ГИС</h1>
-  <p class="muted">Учебный проект НГТУ. Модель: <span id="model-name">...</span>.
-    Описание API: <a href="/docs">/docs</a></p>
+  <p class="muted">Учебная практика НГТУ, кейс 2ГИС. Модель: TF-IDF (слова и биграммы) +
+    логистическая регрессия. Описание API: <a href="/docs">/docs</a></p>
 
   <section>
-    <h2>1. Анализ отзыва</h2>
+    <h2>Анализ отзыва</h2>
     <textarea id="review" rows="5" placeholder="Вставьте текст отзыва">Всегда очень вкусный кофе и свежие десерты) место тихое и спокойное, для посиделок вдвоём идеально)</textarea>
     <div class="row">
       <button id="btn-predict">Определить характеристики</button>
       <label><input type="checkbox" id="show-all"> показать все 19</label>
     </div>
     <div id="predict-result"></div>
-  </section>
-
-  <section>
-    <h2>2. Подборка заведений</h2>
-    <div class="row">
-      <select id="label-select"></select>
-      <label>мин. отзывов <input type="number" id="min-reviews" value="10" min="1" max="200"></label>
-      <button id="btn-top">Показать топ-10</button>
-    </div>
-    <div id="top-result"></div>
-  </section>
-
-  <section>
-    <h2>3. Профиль заведения</h2>
-    <div class="row">
-      <input type="text" id="venue-query" placeholder="Название, например Фиалка">
-      <button id="btn-search">Найти</button>
-    </div>
-    <div id="search-result"></div>
-    <div id="venue-result"></div>
   </section>
 </div>
 <script src="/static/app.js"></script>

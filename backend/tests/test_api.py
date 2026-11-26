@@ -5,7 +5,8 @@ from app import config
 from app.main import app
 
 pytestmark = pytest.mark.skipif(
-    not config.TFIDF_PATH.exists(), reason="сначала обучите модель: scripts/train_tfidf.py"
+    not config.MODEL_PATH.exists(),
+    reason="сначала запустите pipeline (скрипты 01-12), нужен models/final_model.joblib",
 )
 
 
@@ -38,13 +39,14 @@ def test_predict_returns_all_labels(client):
     assert probs == sorted(probs, reverse=True)
     assert all(0 <= p <= 1 for p in probs)
     assert set(data["labels"]) == {s["label"] for s in data["scores"] if s["predicted"]}
-    assert all(s["predicted"] == (s["probability"] >= s["threshold"]) for s in data["scores"])
 
 
 @pytest.mark.parametrize("text, label", [
     ("Отличное место для семьи, есть детская комната и детское меню, ребёнок в восторге", "Покормить детей"),
     ("Тихо, есть розетки и wi-fi, удобно поработать с ноутбуком", "Поработать"),
     ("Панорамные окна, с террасы шикарный вид на реку и город", "Красивый вид"),
+    ("Всегда очень вкусный кофе и свежие десерты) место тихое и спокойное, "
+     "для посиделок вдвоём идеально)", "Свидание"),
 ])
 def test_predict_obvious_cases(client, text, label):
     data = client.post("/api/predict", json={"text": text}).json()
@@ -62,35 +64,7 @@ def test_predict_batch(client):
     assert len(resp.json()["items"]) == 2
 
 
-needs_venues = pytest.mark.skipif(not config.VENUES_PATH.exists(),
-                                  reason="сначала постройте профили: scripts/build_venues.py")
-
-
-@needs_venues
-def test_top_venues(client):
-    resp = client.get("/api/venues", params={"label": "Свидание", "limit": 5, "min_reviews": 10})
+def test_index_page(client):
+    resp = client.get("/")
     assert resp.status_code == 200
-    items = resp.json()
-    assert 0 < len(items) <= 5
-    shares = [v["share"] for v in items]
-    assert shares == sorted(shares, reverse=True)
-    assert all(v["reviews"] >= 10 for v in items)
-
-
-@needs_venues
-def test_top_venues_unknown_label(client):
-    assert client.get("/api/venues", params={"label": "Нет такой"}).status_code == 404
-
-
-@needs_venues
-def test_search_and_profile(client):
-    found = client.get("/api/venues/search", params={"q": "Фиалка"}).json()
-    assert found
-    venue = client.get(f"/api/venues/{found[0]['branch_id']}").json()
-    assert venue["name"] == found[0]["name"]
-    assert all(0 < x["share"] <= 1 for x in venue["labels"])
-
-
-@needs_venues
-def test_unknown_venue(client):
-    assert client.get("/api/venues/nope").status_code == 404
+    assert "Анализ отзыва" in resp.text

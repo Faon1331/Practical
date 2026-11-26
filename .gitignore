@@ -11,10 +11,9 @@ env/
 # данные 2ГИС (большие файлы, в репозиторий не кладём)
 dataset/
 
-# создаются скриптами из backend/scripts
-backend/models/
-backend/data/
-backend/reports/*.npy
+# создаются скриптами pipeline/01-16 и backend/scripts
+data/
+models/
 
 # рабочие файлы
 Презентация_черновик2ГИС(1).pptx

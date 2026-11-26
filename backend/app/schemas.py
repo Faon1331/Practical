@@ -31,35 +31,10 @@ class Prediction(BaseModel):
     scores: list[LabelScore]
 
 
-class PredictionOut(Prediction):
-    model: str
-
-
 class BatchOut(BaseModel):
-    model: str
     items: list[Prediction]
 
 
 class LabelInfo(BaseModel):
     label: str
     group: str
-
-
-class VenueShort(BaseModel):
-    branch_id: str
-    name: str
-    kind: str | None = None
-    rating: float | None = None
-    reviews: int
-    share: float | None = None
-
-
-class VenueLabel(BaseModel):
-    label: str
-    group: str
-    count: int
-    share: float
-
-
-class VenueOut(VenueShort):
-    labels: list[VenueLabel]

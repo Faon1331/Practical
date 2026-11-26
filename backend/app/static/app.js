@@ -49,104 +49,14 @@ async function predict() {
   }
 }
 
-function venuesTable(items, withShare) {
-  if (!items.length) return "<p>Ничего не найдено</p>";
-  let html = "<table><tr><th>Заведение</th><th>Тип</th><th>Рейтинг</th><th>Отзывов</th>" +
-    (withShare ? "<th>Доля отзывов</th>" : "") + "</tr>";
-  for (const v of items) {
-    html += "<tr><td>" + esc(v.name) + "</td><td>" + esc(v.kind || "") + "</td><td class='num'>" +
-      (v.rating == null ? "" : v.rating) + "</td><td class='num'>" + v.reviews + "</td>" +
-      (withShare ? "<td class='num'>" + percent(v.share) + "</td>" : "") + "</tr>";
-  }
-  return html + "</table>";
-}
-
-async function loadTop() {
-  const out = document.getElementById("top-result");
-  const label = document.getElementById("label-select").value;
-  const minReviews = document.getElementById("min-reviews").value || 10;
-  try {
-    const params = new URLSearchParams({label: label, limit: 10, min_reviews: minReviews});
-    out.innerHTML = venuesTable(await api("/api/venues?" + params), true);
-  } catch (err) {
-    showError(out, err);
-  }
-}
-
-async function searchVenues() {
-  const out = document.getElementById("search-result");
-  const q = document.getElementById("venue-query").value.trim();
-  document.getElementById("venue-result").innerHTML = "";
-  if (q.length < 2) {
-    out.innerHTML = "<p>Введите хотя бы 2 буквы</p>";
-    return;
-  }
-  try {
-    const items = await api("/api/venues/search?q=" + encodeURIComponent(q));
-    if (!items.length) {
-      out.innerHTML = "<p>Ничего не найдено</p>";
-      return;
-    }
-    out.innerHTML = items.map(v =>
-      "<div class='found'><a data-id='" + esc(v.branch_id) + "'>" + esc(v.name) + "</a> " +
-      esc(v.kind || "") + ", отзывов: " + v.reviews + "</div>").join("");
-    out.querySelectorAll("a").forEach(a => a.addEventListener("click", () => showVenue(a.dataset.id)));
-  } catch (err) {
-    showError(out, err);
-  }
-}
-
-async function showVenue(id) {
-  const out = document.getElementById("venue-result");
-  try {
-    const v = await api("/api/venues/" + encodeURIComponent(id));
-    let html = "<h3>" + esc(v.name) + (v.kind ? ", " + esc(v.kind) : "") + "</h3>";
-    html += "<p>Рейтинг: " + (v.rating == null ? "-" : v.rating) + ", отзывов в выборке: " + v.reviews + "</p>";
-    html += "<table><tr><th>Характеристика</th><th>Группа</th><th>Отзывов</th><th>Доля</th></tr>";
-    for (const l of v.labels) {
-      html += "<tr><td>" + esc(l.label) + "</td><td>" + esc(l.group) + "</td><td class='num'>" + l.count +
-        "</td><td class='num'>" + percent(l.share) + "</td></tr>";
-    }
-    out.innerHTML = html + "</table>";
-  } catch (err) {
-    showError(out, err);
-  }
-}
-
-async function init() {
-  try {
-    const health = await api("/api/health");
-    document.getElementById("model-name").textContent = health.model === "bert" ? "ruBERT" : "TF-IDF + логистическая регрессия";
-    const labels = await api("/api/labels");
-    const select = document.getElementById("label-select");
-    for (const l of labels) {
-      const opt = document.createElement("option");
-      opt.value = l.label;
-      opt.textContent = l.label;
-      if (l.label === "Свидание") opt.selected = true;
-      select.appendChild(opt);
-    }
-  } catch (err) {
-    document.getElementById("model-name").textContent = "не загружена";
-    return;
-  }
-
-  // ссылки вида /?text=...&label=Свидание сразу показывают результат
+function init() {
+  // ссылка вида /?text=... сразу показывает результат
   const params = new URLSearchParams(location.search);
   if (params.get("text")) {
     document.getElementById("review").value = params.get("text");
     predict();
   }
-  if (params.get("label")) {
-    document.getElementById("label-select").value = params.get("label");
-    loadTop();
-  }
 }
 
 document.getElementById("btn-predict").addEventListener("click", predict);
-document.getElementById("btn-top").addEventListener("click", loadTop);
-document.getElementById("btn-search").addEventListener("click", searchVenues);
-document.getElementById("venue-query").addEventListener("keydown", e => {
-  if (e.key === "Enter") searchVenues();
-});
 init();
